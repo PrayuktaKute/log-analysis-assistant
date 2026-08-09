@@ -358,11 +358,11 @@ only connects when a method is actually called); `resolve_model()` and
 
 All core requirements are implemented:
 
-1. ~~`LogReader` / `LogParser` / `LogNormalizer`~~ — **implemented**, see [Ingestion parser](#ingestion-parser) above.
-2. ~~`EventCorrelator` / `FailureDetector` / analysis suite~~ — **implemented**, see [Deterministic log analysis](#deterministic-log-analysis) above.
-3. ~~`Embedder` / `FaissVectorStore` / `IncidentRetriever`~~ — **implemented**, see [RAG retrieval](#rag-retrieval) above.
-4. ~~`OllamaClient` / `PromptBuilder` / `ResponseParser` / `QAEngine`~~ — **implemented**, see [LLM integration](#llm-integration) above.
-5. ~~`ReportGenerator`~~ — **implemented**: renders `Incident` (including `QAEngine.investigate()` output) to Markdown via the Jinja2 template at `app/reporting/templates/incident_report.md.j2`. Sample output is in [`reports/`](reports/).
+1. see [Ingestion parser](#ingestion-parser) above.
+2. see [Deterministic log analysis](#deterministic-log-analysis) above.
+3. see [RAG retrieval](#rag-retrieval) above.
+4. see [LLM integration](#llm-integration) above.
+5. report generator renders `Incident` (including `QAEngine.investigate()` output) to Markdown via the Jinja2 template at `app/reporting/templates/incident_report.md.j2`. Sample output is in [`reports/`](reports/).
 6. ~~`LogAnalysisPipeline.run()` / `.generate_reports()`~~ — **implemented**: wires `LogAnalyzer` + `IncidentRetriever` + `QAEngine` + `ReportGenerator` into the end-to-end flow; the Streamlit pages (`pages/1_Dashboard.py`, `pages/2_Chat_Assistant.py`, `pages/3_Incident_Reports.py`) call into it directly.
 
 `regenerate_reports_overnight.py` drives a full, resumable batch run of the
