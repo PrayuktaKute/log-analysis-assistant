@@ -1,0 +1,133 @@
+{# Jinja2 template for Markdown incident reports.
+   Rendered by app/reporting/report_generator.py. `incident.investigation`
+   is only set for incidents that met settings.investigation_min_confidence
+   (see LogAnalysisPipeline._assemble_incidents) -- every AI-generated
+   section below degrades to an explicit note when it's None, rather than
+   silently omitting the heading. #}
+# Incident Report: {{ incident.title }}
+
+- **Incident ID:** {{ incident.incident_id }}
+- **Severity:** {{ incident.severity.value }}
+- **Generated:** {{ generated_at }}
+{% if incident.investigation %}
+- **Confidence Level:** {{ incident.investigation.confidence_level.value }}
+{% endif %}
+
+## Executive Summary
+
+{% if incident.investigation %}
+{{ incident.investigation.executive_summary }}
+{% else %}
+_No AI-generated executive summary is available for this incident (the LLM was unavailable or did not
+return a valid response when this report was generated)._
+{% endif %}
+
+## Incident Summary
+
+{% if incident.investigation %}
+{{ incident.investigation.incident_summary }}
+{% else %}
+{{ incident.title }} was detected across {{ incident.correlated_events | length }} correlated
+event group(s) and {{ incident.failure_patterns | length }} repeated failure pattern(s).
+{% endif %}
+
+## Major Issues Detected
+
+{% for pattern in incident.failure_patterns %}
+### {{ pattern.description }}
+
+- Occurrences: {{ pattern.occurrences }}
+- First seen: {{ pattern.first_seen }}
+- Last seen: {{ pattern.last_seen }}
+- Affected sources: {{ pattern.affected_sources | join(", ") }}
+{% else %}
+_No repeated failure patterns attached to this incident._
+{% endfor %}
+{% for group in incident.correlated_events %}
+### Correlation group `{{ group.correlation_id }}`
+
+- Components: {{ group.involved_components | join(", ") }}
+- Hosts: {{ group.involved_hosts | join(", ") }}
+- Window: {{ group.start_time }} -> {{ group.end_time }}
+- Confidence: {{ "%.2f" | format(group.confidence_score) }}
+{% endfor %}
+
+## Timeline of Important Events
+
+{% for event in incident.timeline %}
+- **{{ event.timestamp }}** [{{ event.event_type.value }}] {{ event.title }} -- {{ event.description }}
+{% else %}
+_No curated timeline events are associated with this incident._
+{% endfor %}
+
+## Root Cause Analysis
+
+{% if incident.investigation and incident.investigation.possible_root_causes %}
+{% for cause in incident.investigation.possible_root_causes %}
+### ({{ cause.likelihood.value }} likelihood) {{ cause.description }}
+
+{% for evidence in cause.supporting_evidence %}
+- {{ evidence }}
+{% endfor %}
+{% endfor %}
+
+**How this conclusion was reached:** {{ incident.investigation.ai_reasoning or "Not provided by the LLM." }}
+{% if incident.investigation.open_questions %}
+
+**Open questions:**
+{% for question in incident.investigation.open_questions %}
+- {{ question }}
+{% endfor %}
+{% endif %}
+{% else %}
+_No AI-generated root cause analysis is available for this incident._
+{% endif %}
+
+## Supporting Evidence
+
+{% if incident.investigation and incident.investigation.supporting_evidence %}
+{% for evidence in incident.investigation.supporting_evidence %}
+- {{ evidence }}
+{% endfor %}
+{% else %}
+_No LLM-curated supporting evidence is available; see Major Issues Detected above for the raw
+deterministic evidence extracted from the current logs._
+{% endif %}
+
+## Similar Historical Incidents
+
+{% for retrieved in incident.similar_incidents %}
+- **{{ retrieved.incident.title }}** (similarity: {{ "%.2f" | format(retrieved.similarity_score) }})
+  {{ retrieved.incident.summary }}
+{% else %}
+_No similar historical incidents were retrieved._
+{% endfor %}
+{% if incident.investigation and incident.investigation.similar_historical_incidents %}
+
+LLM-cited historical incidents (attributed precedent, not current fact):
+{% for ref in incident.investigation.similar_historical_incidents %}
+- {{ ref.incident_id }}: {{ ref.title }} -- {{ ref.relevance_explanation }}
+{% endfor %}
+{% endif %}
+
+## Recommended Fixes
+
+{% if incident.investigation and incident.investigation.recommended_actions %}
+{% for action in incident.investigation.recommended_actions %}
+- {{ action }}
+{% endfor %}
+{% else %}
+_No AI-generated recommendations are available for this incident._
+{% endif %}
+
+## Confidence Level
+
+{% if incident.investigation %}
+**{{ incident.investigation.confidence_level.value }}**
+{% if not incident.investigation.evidence_sufficient %}
+
+_The model judged current log evidence insufficient for a fully confident conclusion._
+{% endif %}
+{% else %}
+_Not assessed by the LLM for this incident._
+{% endif %}

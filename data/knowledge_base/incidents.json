@@ -1,0 +1,82 @@
+[
+  {
+    "incident_id": "inc-001",
+    "title": "Recurring PostgreSQL deadlocks under high order volume",
+    "summary": "Repeated deadlock errors from PostgreSQL during checkout traffic spikes, causing order and payment requests to fail.",
+    "root_cause": "Long-running transactions in the order service held row locks during peak checkout traffic, creating deadlock cycles with the payment service.",
+    "resolution": "Reduced transaction scope, added retry-with-backoff on deadlock errors, and added an index to speed up the contended query.",
+    "tags": ["database", "postgresql", "deadlock", "order-service"]
+  },
+  {
+    "incident_id": "inc-002",
+    "title": "Redis cache outage causing cascading latency",
+    "summary": "Redis connection pool exhausted after a network partition, leading to cache misses and connection resets across auth and gateway services.",
+    "root_cause": "Redis node failover took longer than the configured client timeout, so requests piled up waiting on a dead connection.",
+    "resolution": "Lowered the client-side timeout and added a circuit breaker to fall back to direct database reads during Redis outages.",
+    "tags": ["cache", "redis", "network", "auth-service"]
+  },
+  {
+    "incident_id": "inc-003",
+    "title": "Kafka publish failures during broker rebalance",
+    "summary": "Order and notification events failed to publish to Kafka during a rolling broker restart.",
+    "root_cause": "Producer retries were disabled, so transient broker unavailability during rebalance caused permanent message loss.",
+    "resolution": "Enabled idempotent producer retries and increased the delivery timeout.",
+    "tags": ["messaging", "kafka", "order-service", "notification-service"]
+  },
+  {
+    "incident_id": "inc-004",
+    "title": "PLC communication timeouts on shop-floor integration",
+    "summary": "Intermittent timeouts communicating with the PLC controller from the gateway and auth services during scheduled firmware polling.",
+    "root_cause": "The PLC controller's CPU was saturated by its own scheduled diagnostics window, which overlapped with normal polling requests.",
+    "resolution": "Rescheduled PLC diagnostics outside business hours and added exponential backoff to the polling client.",
+    "tags": ["plc", "integration", "timeout"]
+  },
+  {
+    "incident_id": "inc-005",
+    "title": "Docker containers exiting unexpectedly under memory pressure",
+    "summary": "Multiple service containers were OOM-killed during a traffic spike.",
+    "root_cause": "Container memory limits were set below actual peak usage after a recent dependency upgrade increased the baseline memory footprint.",
+    "resolution": "Raised memory limits and added an alert that fires before usage reaches the OOM-kill threshold.",
+    "tags": ["infrastructure", "docker", "memory", "oom"]
+  },
+  {
+    "incident_id": "inc-006",
+    "title": "JWT verification failures after signing-key rotation",
+    "summary": "A batch of requests failed authentication immediately following a signing-key rotation.",
+    "root_cause": "The new key had not yet propagated to all auth service replicas when rotation completed, so a brief window of requests were verified against the old key and rejected.",
+    "resolution": "Added a grace period during rotation where both the old and new keys are accepted.",
+    "tags": ["auth", "jwt", "security"]
+  },
+  {
+    "incident_id": "inc-007",
+    "title": "Payment gateway ECONNRESET spikes during provider maintenance",
+    "summary": "The payment service saw a burst of ECONNRESET errors calling the external payment gateway.",
+    "root_cause": "The payment provider performed unannounced maintenance that closed idle connections mid-request.",
+    "resolution": "Added connection-reset-aware retry logic and shortened the idle-connection keep-alive interval.",
+    "tags": ["network", "payment-service", "external-dependency"]
+  },
+  {
+    "incident_id": "inc-008",
+    "title": "MongoDB connection timeouts during replica set election",
+    "summary": "The inventory service experienced connection timeouts to MongoDB during a primary failover.",
+    "root_cause": "The client driver's server-selection timeout was shorter than the election duration under load.",
+    "resolution": "Increased the server-selection timeout and added read-preference fallback to secondaries.",
+    "tags": ["database", "mongodb", "inventory-service"]
+  },
+  {
+    "incident_id": "inc-009",
+    "title": "Unhandled exceptions in order processing after a schema change",
+    "summary": "The order service began throwing unhandled exceptions while processing a subset of orders after a backward-incompatible field rename in an upstream event schema.",
+    "root_cause": "An upstream team renamed a field without a compatibility window, and the order service's parser still expected the old field name.",
+    "resolution": "Added schema validation at the consumer boundary and coordinated a versioned rollout process with upstream teams.",
+    "tags": ["application", "order-service", "schema"]
+  },
+  {
+    "incident_id": "inc-010",
+    "title": "Elevated memory usage across services from a slow memory leak",
+    "summary": "Gradual memory growth was observed across the gateway and notification services over several days, eventually triggering restarts.",
+    "root_cause": "An event listener registered on each request was never deregistered, accumulating unbounded references over time.",
+    "resolution": "Fixed the listener leak and added a heap-growth alert.",
+    "tags": ["infrastructure", "memory", "memory-leak"]
+  }
+]

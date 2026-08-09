@@ -1,0 +1,1 @@
+"""Markdown incident report generation."""

@@ -1,0 +1,38 @@
+{# Jinja2 template for the batched "minor incidents" appendix.
+   Rendered by ReportGenerator.generate_appendix() for incidents that did not
+   qualify for an individual LLM investigation -- see
+   LogAnalysisPipeline.is_minor_incident: pattern-only incidents (no
+   corroborating correlated event) and correlated events below
+   settings.investigation_min_confidence. Summarized here instead of as one
+   full report each, so the report set stays focused and LLM calls stay
+   practical. #}
+# Appendix: Minor / Low-Confidence Incidents
+
+- **Generated:** {{ generated_at }}
+- **Incident count:** {{ incidents | length }}
+
+These incidents did not meet the correlation-confidence bar for an individual AI-generated
+investigation (either a single repeated-failure pattern with no corroborating correlated event, or a
+correlated event below the configured confidence threshold). They are summarized briefly below rather
+than as full reports.
+
+{% for incident in incidents %}
+## {{ incident.incident_id }} -- {{ incident.title }}
+
+- Severity: {{ incident.severity.value }}
+{% if incident.correlated_events %}
+- Correlation confidence: {{ "%.2f" | format(incident.correlated_events[0].confidence_score) }}
+- Components: {{ incident.correlated_events[0].involved_components | join(", ") }}
+- Hosts: {{ incident.correlated_events[0].involved_hosts | join(", ") }}
+{% else %}
+- No corroborating correlated event (single repeated-failure pattern only)
+{% endif %}
+{% if incident.failure_patterns %}
+{% set pattern_strs = [] %}
+{% for p in incident.failure_patterns %}{% set _ = pattern_strs.append('"' ~ p.message ~ '" (' ~ p.occurrences ~ 'x)') %}{% endfor %}
+- Failure pattern(s): {{ pattern_strs | join(", ") }}
+{% endif %}
+{% if incident.similar_incidents %}
+- Closest historical incident: {{ incident.similar_incidents[0].incident.title }} (similarity: {{ "%.2f" | format(incident.similar_incidents[0].similarity_score) }})
+{% endif %}
+{% endfor %}

@@ -1,0 +1,69 @@
+{
+  "_comment": "Failure-category mapping used by app.analysis.message_catalog. 'categories' is an exact-match table (message text -> its listed category); 'keyword_fallback' is checked (case-insensitive substring) for any message not in 'categories'. Replace or point MESSAGE_CATEGORY_CONFIG_PATH elsewhere to adapt this to a different log source without touching code.",
+
+  "categories": {
+    "database": [
+      "Connected to PostgreSQL",
+      "Database connection pool above threshold",
+      "MongoNetworkError: connection timed out",
+      "PostgreSQL error: deadlock detected"
+    ],
+    "cache": [
+      "Cache refreshed",
+      "Redis cache hit",
+      "Redis cache miss",
+      "Redis connection lost"
+    ],
+    "infrastructure": [
+      "Docker container exited unexpectedly",
+      "Memory usage high"
+    ],
+    "network": [
+      "ECONNRESET while calling payment gateway",
+      "External API latency increased",
+      "Retrying downstream request"
+    ],
+    "health": [
+      "Health check passed"
+    ],
+    "traffic": [
+      "Incoming request",
+      "Request completed"
+    ],
+    "auth": [
+      "JWT verification failed",
+      "Session validated"
+    ],
+    "messaging": [
+      "Kafka publish failed"
+    ],
+    "plc": [
+      "PLC communication timeout"
+    ],
+    "performance": [
+      "Slow response detected"
+    ],
+    "application": [
+      "Unhandled exception in order processing",
+      "UnhandledPromiseRejection: TypeError: Cannot read properties of undefined"
+    ],
+    "jobs": [
+      "Background job completed"
+    ],
+    "integration": [
+      "Webhook processed"
+    ]
+  },
+
+  "keyword_fallback": {
+    "database": ["postgres", "sql", "mongo", "database"],
+    "cache": ["redis", "cache"],
+    "messaging": ["kafka", "queue", "publish"],
+    "plc": ["plc"],
+    "infrastructure": ["docker", "container", "memory", "cpu", "disk"],
+    "auth": ["jwt", "auth", "token", "session"],
+    "network": ["timeout", "econnreset", "retry", "retrying", "connection"],
+    "performance": ["latency", "slow"],
+    "application": ["exception", "error", "unhandled"]
+  }
+}

@@ -1,0 +1,23 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.env
+
+# Generated artifacts
+data/faiss_index/*
+!data/faiss_index/.gitkeep
+reports/*.md
+!reports/.gitkeep
+# Keep a few representative sample reports in the submission
+!reports/incident-corr-0193.md
+!reports/incident-corr-0091.md
+!reports/appendix-minor-incidents.md
+logs/*.log
+!logs/.gitkeep
+
+# IDE
+.idea/
+.vscode/
+.claude/settings.local.json
